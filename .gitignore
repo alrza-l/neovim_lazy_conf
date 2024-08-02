@@ -1,0 +1,42 @@
+# Ignore Neovim swap files
+*.swp
+*.swo
+*.swn
+
+# Ignore Neovim backup files
+*.bak
+*.old
+
+# Ignore Neovim session files
+Session.vim
+
+# Ignore log files
+*.log
+
+# Ignore compiled files
+*.o
+*.out
+
+# Ignore the LazyVim plugin directory (if using lazy loading)
+lazyvim/
+
+# Ignore any temporary files created by plugins
+tmp/
+tmp/*
+*.tmp
+
+# Ignore the local configuration files (if any)
+local.vim
+local.lua
+
+# Ignore any specific language server configuration files
+*.json
+*.yaml
+*.yml
+
+# Ignore any other editor-specific files
+.idea/
+.vscode/
+
+#ignore lazy package manager lock files
+lazy-lock.json

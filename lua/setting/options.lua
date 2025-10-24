@@ -12,7 +12,7 @@ vim.opt.showmode = false
 vim.opt.tabstop = 4
 vim.opt.expandtab = false
 vim.opt.colorcolumn = '+1'
-vim.opt.textwidth = 80
+vim.opt.textwidth = 1000
 
 vim.schedule(function()
   vim.opt.clipboard = 'unnamedplus'

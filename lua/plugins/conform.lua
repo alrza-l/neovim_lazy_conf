@@ -33,6 +33,7 @@ return {
       javascript = { 'prettierd', 'prettier', stop_after_first = true },
       cpp = { 'astyle' },
       c = { 'astyle', 'clang-format' },
+      astro = { 'astro' },
     },
   },
 }

@@ -10,7 +10,7 @@ return {
 
   config = function()
     vim.api.nvim_create_autocmd('LspAttach', {
-      group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
+      group = vim.api.nvim_create_augroup('lsp-attach', { clear = true }),
       callback = function(event)
         local map = function(keys, func, desc, mode)
           mode = mode or 'n'
@@ -23,18 +23,14 @@ return {
           end
         end
 
-        -- Jump to the definition of the word under your cursor.
         map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
-
-        -- Find references for the word under your cursor.
+        map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
         map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
+        map('<leader>gi', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
+
         map('<leader>wtf', vim.diagnostic.open_float, '[W]hat [T]he [F]uck')
-        -- Jump to the implementation of the word under your cursor.
-        map('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
-        -- Jump to the type of the word under your cursor.
-        -- TODO:Maybe change this keybind
-        map('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
-        map('<space>e', '<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>')
+        map('<leader>gtd', require('telescope.builtin').lsp_type_definitions, '[G]oto [T]ype [D]efinition')
+        map('<space>e', vim.diagnostic.open_float, 'Show Line Diagnostics')
         -- Fuzzy find all the symbols in your current document.
         -- TODO:Maybe change this keybind
         map('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
@@ -43,17 +39,8 @@ return {
         -- TODO: did not catch it
         map('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
 
-        -- Rename the variable under your cursor.
-        -- TODO: maybe change this keybind
         map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
-
-        -- Execute a code action, usually your cursor needs to be on top of an error
-        -- TODO: maybe change this keybind
         map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
-
-        -- WARN: This is not Goto Definition, this is Goto Declaration.
-        --  For example, in C this would take you to the header.
-        map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
         local client = vim.lsp.get_client_by_id(event.data.client_id)
 
@@ -63,14 +50,17 @@ return {
           vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
             buffer = event.buf,
             group = highlight_augroup,
-            callback = vim.lsp.buf.document_highlight,
+            callback = function()
+              vim.lsp.buf.document_highlight()
+            end,
           })
 
-          --TODO:Maybe show definition on long stop
           vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
             buffer = event.buf,
             group = highlight_augroup,
-            callback = vim.lsp.buf.clear_references,
+            callback = function()
+              vim.lsp.buf.clear_references()
+            end,
           })
 
           vim.api.nvim_create_autocmd('LspDetach', {
@@ -81,6 +71,7 @@ return {
             end,
           })
         end
+
         --TODO: check this out too
         if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
           map('<leader>th', function()
@@ -100,14 +91,12 @@ return {
 
     local servers = {
       clangd = {
-        cmd = { 'clangd', '--compile-commands-dir=build' },
+        cmd = { 'clangd', '--compile-commands-dir=build', '--language=c' },
+        filetypes = { 'c', 'h' },
       },
 
       pyright = {},
-      omnisharp = {
-        cmd = { 'omnisharp', '--languageserver', '--hostPID', tostring(vim.fn.getpid()) },
-        root_dir = require('lspconfig.util').root_pattern('*.sln', '*.csproj'),
-      },
+      astro = {},
       ts_ls = {},
       lua_ls = {
         settings = {
@@ -127,11 +116,15 @@ return {
     require('mason').setup()
 
     local ensure_installed = vim.tbl_keys(servers or {})
+
     vim.list_extend(ensure_installed, {
-      'stylua', -- Used to format Lua code
+      'stylua',
       'gomodifytags',
       'impl',
+      'ast-grep',
+      'clang-format',
     })
+
     require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
     require('mason-lspconfig').setup {
